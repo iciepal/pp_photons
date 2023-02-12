@@ -39,9 +39,10 @@ Int_t loopDST_photons() {
 
 
 
-// read all categories
+// read selected categories
 
-    if (!gLoop->setInput()){ // read all categories
+    if (!gLoop->setInput("-*,+HStart2Hit,+HParticleCand,+HEmcNeutralCand,+HEmcCluster,+HEventHeader")){ 
+
         cout << "READBACK: ERROR : cannot read input !" << endl;
         exit(1);
     } 
@@ -180,9 +181,6 @@ Int_t loopDST_photons() {
     timer.Reset();
     timer.Start();
 
-
-    
-    
       
     Long64_t nEvents = gLoop->getEntries();
     if (nEventsDesired < nEvents && nEventsDesired >= 0)
@@ -280,7 +278,7 @@ Int_t loopDST_photons() {
 
 
 
-		if (energy>150 && beta>0.8 && beta<1.2){
+		if (energy>150 && beta>0.8 && beta<1.2 && tof>0 && tof<100.){
 
 		  lv_neutr.push_back(lvg1);	    
 		  lv_gMix.push_back(lvg1);
@@ -399,7 +397,9 @@ Int_t loopDST_photons() {
 
 	//***********************************************
 	//**************  ALL gg  *****************
-	    if(lv_neutr.size()>=2){
+	//Inclusive:
+
+	if(lv_neutr.size()>=2){
 	    
 	      for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
 		for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
@@ -440,7 +440,7 @@ Int_t loopDST_photons() {
 
 	    //*****************************************
 	    //*****************************************
-	    //exclusive pi0 selected in MM2(pp) in Hades
+	    //exclusive: pi0 selected in MM2(pp) in Hades
 
 	    if(lv_neutr.size()>=2 && lv_prot1.size()==1 && lv_prot2.size()==1){
 	      for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
@@ -463,7 +463,7 @@ Int_t loopDST_photons() {
 	    }
 
 	    //**********************************************************
-	    //exclusive omega selected in MM2(pp) in Hades
+	    //exclusive: omega selected in MM2(pp) in Hades
 
 	    if(lv_neutr.size()>=2 && lv_prot3.size()==1 && lv_prot4.size()==1 ){
 	      for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
@@ -516,7 +516,7 @@ Int_t loopDST_photons() {
 	      
 	      float mass_ggMix=lvMix.M();
 
-	      hinvM_ggMix->Fill(mass_ggMix); //pi0
+	      if(trigbit==1)hinvM_ggMix->Fill(mass_ggMix); //pi0
 	      
 	      //**********************************
 
@@ -527,7 +527,7 @@ Int_t loopDST_photons() {
 		  for (long unsigned int i=0;i<lv_pip.size();i++){
 		    for (long unsigned int j=0;j<lv_pim.size();j++){
 		      lv4b=lvMix+lv_pip[i]+lv_pim[j];
-		      hMpippimpi0_Mix->Fill(lv4b.M());
+		      if(trigbit==1)hMpippimpi0_Mix->Fill(lv4b.M());
 		    }
 		  }
 		}
