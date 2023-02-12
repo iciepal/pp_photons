@@ -65,12 +65,13 @@ Int_t loopDST_photons() {
     if (!fParticleCand) { cout << "No catParticleCand!" << endl; }
    
     HCategory* fEmcNeutralCand = HCategoryManager::getCategory(catEmcNeutralCand, kTRUE, "catEmcNeutralCand");
-
+    if (!fEmcNeutralCand) { cout << "No catEmcNeutralCand!" << endl; }
+ 
     HCategory* fEmcCluster = HCategoryManager::getCategory(catEmcCluster, 0, "catEmcCluster, from HNeutralCandFinder::init()");
-
+    if (!fEmcCluster) { cout << "No catEmcCluster!" << endl; }
+    
     HCategory * fStart2Hit = HCategoryManager::getCategory(catStart2Hit, kTRUE, "catStart2Hit");
-    if (!fStart2Hit) { cout << "No catStart2Hit!" << endl; //abort();
-    }
+    if (!fStart2Hit) { cout << "No catStart2Hit!" << endl; }
 
 
     //*********************************************************

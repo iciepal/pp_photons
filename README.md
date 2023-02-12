@@ -10,3 +10,9 @@ Then, in terminal:
 To run the code:
 
 root -l -b loopDST_photons.C++
+
+Event mixing:
+Macro invMgg_evMix.C usues rootfile with large statistics: photons_day060_01.root
+
+root -l -b invMgg_evMix.C
+output: pp_gg_evMix.root with 2 canvas
