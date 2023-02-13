@@ -67,7 +67,7 @@ Int_t loopDST_photons() {
     HCategory* fEmcNeutralCand = HCategoryManager::getCategory(catEmcNeutralCand, kTRUE, "catEmcNeutralCand");
     if (!fEmcNeutralCand) { cout << "No catEmcNeutralCand!" << endl; }
  
-    HCategory* fEmcCluster = HCategoryManager::getCategory(catEmcCluster, 0, "catEmcCluster, from HNeutralCandFinder::init()");
+    HCategory* fEmcCluster = HCategoryManager::getCategory(catEmcCluster, kTRUE, "catEmcCluster");
     if (!fEmcCluster) { cout << "No catEmcCluster!" << endl; }
     
     HCategory * fStart2Hit = HCategoryManager::getCategory(catStart2Hit, kTRUE, "catStart2Hit");
@@ -251,7 +251,10 @@ Int_t loopDST_photons() {
 		cl=HCategoryManager::getObject(cl, fEmcCluster, ind);
 		Int_t cl_size = cl->getNCells();
 		//Int_t sec = cl->getSector();
-		//Int_t cel = cl->getCell();		
+		Int_t cel = cl->getCell();		
+
+		if(cel<10)continue;
+		
 		Double_t energy  = cl->getEnergy();
 		HGeomVector trackVec(cl->getXLab(), cl->getYLab(), cl->getZLab() - VertexZ);
 		
