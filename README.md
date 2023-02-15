@@ -6,9 +6,11 @@ git clone https://github.com/iciepal/pp_photons.git
 Then, in the terminal:
 
 To load the latest HYDRA version:
+
 . /cvmfs/hadessoft.gsi.de/install/debian10/6.24.02/hydra2-6.3/defall.sh
 
 To run the code:
+
 root -l -b loopDST_photons.C+
 
 Event mixing:
