@@ -34,7 +34,6 @@ Int_t loopDST_photons() {
     Long64_t nEventsDesired = -1;
     //Long64_t nEventsDesired = 100000;
 
-
     gLoop->addFilesList(input);
 
 
@@ -73,7 +72,6 @@ Int_t loopDST_photons() {
     HCategory * fStart2Hit = HCategoryManager::getCategory(catStart2Hit, kTRUE, "catStart2Hit");
     if (!fStart2Hit) { cout << "No catStart2Hit!" << endl; }
 
-
     //*********************************************************
     
     TH1F *htof_PT2=new TH1F("htof_PT2","htof_PT2",2200,-200,2000);
@@ -83,7 +81,6 @@ Int_t loopDST_photons() {
     TH1F *htracklength=new TH1F("htracklength","htracklength",2000,2000,4000);
     TH1F *hg_energy=new TH1F("hg_energy","hg_energy",2000,0,2000);
 
-
     TH2F* hmass_mom = new TH2F("hmass_mom","hmass_mom; p*q [MeV/c]; mass",1000,-2000,4000,1000,0,2000);
     TH1F *hmass=new TH1F("hmass","hmass",1000,-2000,2000);
 
@@ -91,8 +88,6 @@ Int_t loopDST_photons() {
     TH2F *hbeta_mom_p= new TH2F("hbeta_mom_p","hbeta_mom_p",1000,0.,4000.,700,0.,1.4);
     TH2F *hbeta_mom_pip= new TH2F("hbeta_mom_pip","hbeta_mom_pip",1000,0.,4000.,700,0.,1.4);
     TH2F *hbeta_mom_pim= new TH2F("hbeta_mom_pim","hbeta_mom_pim",1000,-4000.,0.,700,0.,1.4);
-
-
 
     TH1F *hMM_pp=new TH1F("hMM_pp","hMM_pp",1400,0,1400);
     TH1F *hMM2_pp=new TH1F("hMM2_pp","hMM2_pp",900,-1,2);
@@ -106,8 +101,6 @@ Int_t loopDST_photons() {
     TH1F *hinvM_gg_omega_PT3=new TH1F("hinvM_gg_omega_PT3","hinvM_gg_omega_PT3",400,300,1500);
     TH1F *hinvM_gg_omega_pi0_PT3=new TH1F("hinvM_gg_omega_pi0_PT3","hinvM_gg_omega_pi0_PT3",700,0,700);
 
-    
-    
     //*****************************************************
     
     //PROT PID - mass vs mom
@@ -153,16 +146,12 @@ Int_t loopDST_photons() {
      cutPIM->SetPoint(9,-70.97729,215.2778);
      cutPIM->SetPoint(10,-52.02194,208.3333);
      //*************************************************
-     
-
     const float oAngleCut=6.;
     vector<TLorentzVector> lv_neutr, lv_neutr1, lv_prot, lv_pip, lv_pim ;
     vector<TLorentzVector> lv_prot1, lv_prot2, lv_prot3, lv_prot4 ;
     vector<TLorentzVector> lv_gMix;
 
-
-
-    //event Mixer 
+    //event Mixer settings
     HGenericEventMixerObj < TLorentzVector > eventmixer;
     eventmixer.setPIDs(1, 1, 7);
     eventmixer.setBuffSize(30);
@@ -198,7 +187,6 @@ Int_t loopDST_photons() {
             break;
         }
 
-
 	lv_neutr.clear();
 	lv_prot1.clear();
 	lv_prot2.clear();
@@ -207,28 +195,24 @@ Int_t loopDST_photons() {
 	lv_prot.clear();
 	lv_pip.clear();
 	lv_pim.clear();
-	
 	lv_gMix.clear();
-
-      
 
 
         HTool::printProgress(event, nEvents, 1, "Analyzed events: ");
 
-
+	//Start - no iTOF
 	HStart2Hit * fstart = nullptr;
 	fstart = (HStart2Hit *) fStart2Hit->getObject(0);
 	if (!fstart || fstart->getCorrFlag() == -1) continue;
-
 	
+	//selection of VertexZ  
         HEventHeader* event_header = gLoop->getEventHeader();
         if (event_header->getId() != 1)   continue;
-
 	Int_t TBit   = (Int_t) event_header->getTBit();
         Double_t VertexZ = event_header->getVertexReco().getZ();
 	if(VertexZ<-200 || VertexZ>-0) continue;
 	
-
+	//trigger bit info
  	int trigbit=-1;
 
 	if((TBit&4096)==4096) trigbit=0;
@@ -240,33 +224,30 @@ Int_t loopDST_photons() {
 
 	for (int j = 0; j < nNeutral_ev; ++j)
 	  {
-	  
 	    HEmcNeutralCand* neutr_cand = HCategoryManager::getObject(neutr_cand, fEmcNeutralCand, j);
 
 		Int_t ind=neutr_cand->getEmcClusterIndex();
 		//Float_t dist  = neutr_cand->getDistanceToEmc();
 
-
 		HEmcCluster *cl=nullptr;
 		cl=HCategoryManager::getObject(cl, fEmcCluster, ind);
 		Int_t cl_size = cl->getNCells();
 		//Int_t sec = cl->getSector();
-		Int_t cel = cl->getCell();		
-
-		if(cel<10)continue;
-		
-		Double_t energy  = cl->getEnergy();
-		HGeomVector trackVec(cl->getXLab(), cl->getYLab(), cl->getZLab() - VertexZ);
-		
-		Double_t trackLength = trackVec.length();
-		trackVec  *= (energy/trackLength);
-
-		Double_t tof  =cl->getTime();
-		Double_t beta = (trackLength/1000.) / (tof * 1.e-9 * TMath::C());
 		//Float_t theta = cl->getTheta();
 		//Float_t phi = cl->getPhi();
 
+		Int_t cel = cl->getCell();		
+		if(cel<10)continue;
+		
+		Double_t energy  = cl->getEnergy();
+		Double_t tof  =cl->getTime();
 
+		//Beta:
+		HGeomVector trackVec(cl->getXLab(), cl->getYLab(), cl->getZLab() - VertexZ);
+		Double_t trackLength = trackVec.length();
+
+		trackVec  *= (energy/trackLength);
+		Double_t beta = (trackLength/1000.) / (tof * 1.e-9 * TMath::C());
 		  
 		hcl_size->Fill(cl_size);
 		hbeta->Fill(beta);
@@ -280,16 +261,12 @@ Int_t loopDST_photons() {
 		TLorentzVector lvg1;
 		lvg1.SetXYZM(trackVec.getX(),trackVec.getY(),trackVec.getZ(),0);
 
-
-
 		if (energy>150 && beta>0.8 && beta<1.2 && tof>0 && tof<100.){
 
 		  lv_neutr.push_back(lvg1);	    
 		  lv_gMix.push_back(lvg1);
 
 		}
-
-
 
 	  }//nNeutral_ev
 	//*********************************************************
@@ -357,192 +334,179 @@ Int_t loopDST_photons() {
     
 	      }//fParticleCand
 
-	//********************************************************
-       
+	//***********************************************
+	//**************  gg  *****************
+	//Inclusive:
 
+	if(lv_neutr.size()>=2){
+	    
+	  for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
+	    for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
+	      if(ii==jj || ii>jj)continue;
+	      
+	      float oAngle = lv_neutr[ii].Angle(lv_neutr[jj].Vect())*TMath::RadToDeg();
+	      if (oAngle<oAngleCut) continue;
+	      
+	      TLorentzVector lvg2;
+	      lvg2=lv_neutr[ii]+lv_neutr[jj];
+	      float mass_gg=lvg2.M();
+	      
+	      //************** pi0 ************************
+	      
+	      if (trigbit==1) hinvM_gg_PT3->Fill(mass_gg);
+	      
+	      //**************** pip-pim-pi0  ********************
+	      if(lv_pip.size() && lv_pim.size()){
+		TLorentzVector lv3b;
+		
+		for (long unsigned int i=0;i<lv_pip.size();i++){
+		  for (long unsigned int j=0;j<lv_pim.size();j++){
+		    lv3b=lvg2+lv_pip[i]+lv_pim[j];
+		    
+		    if (trigbit==1) hMpippimpi0_PT3->Fill(lv3b.M());
+		    
+		  }
+		}
+	      }
+	      //*****************************************
+	    }
+	  }
+	}//lv_neutr.size()>=2
+
+	//*****************************************
+	//*************** MIX EVENTS  ******************	    
+
+	int nNeutralCand=lv_gMix.size();
+	
+	eventmixer.nextEvent(nNeutralCand + 10*trigbit);
+	eventmixer.addVector(lv_gMix, 1);
+	vector < pair < TLorentzVector, TLorentzVector > >& pairsVec = eventmixer.getMixedVector();
+	for (long unsigned int j = 0; j < pairsVec.size(); j++) {
+	  pair < TLorentzVector, TLorentzVector >& pair = pairsVec[j];
+	  TLorentzVector particleMix1 = pair.first;
+	  TLorentzVector particleMix2 = pair.second;
+	  
+	  float oAngle = particleMix1.Angle(particleMix2.Vect())*TMath::RadToDeg();
+	  if(oAngle< oAngleCut) continue;
+	  
+	  TLorentzVector lvMix;
+	  lvMix=particleMix1+particleMix2;
+	  
+	  float mass_ggMix=lvMix.M();
+	  
+	  if(trigbit==1)hinvM_ggMix->Fill(mass_ggMix); //pi0
+	  
+	  //**********************************
+	  
+	  if(mass_ggMix>100. && mass_ggMix<200.){
+	    
+	    TLorentzVector lv4b;
+	    if(lv_pip.size() && lv_pim.size()){
+	      for (long unsigned int i=0;i<lv_pip.size();i++){
+		for (long unsigned int j=0;j<lv_pim.size();j++){
+		  lv4b=lvMix+lv_pip[i]+lv_pim[j];
+		  if(trigbit==1)hMpippimpi0_Mix->Fill(lv4b.M());
+		}
+	      }
+	    }
+	    //***********************************		
+	  }//if(mass_ggMix>100. && mass_ggMix<200.)
+      
+	}//End of event mixing
+
+	
+	//*******************************************************************
+	//********* EXCLUSIVE ANALYSIS - pp selection ***********************
+	
 	if( lv_prot.size()>=2 ){
-
 	  for (long unsigned int i=0;i<lv_prot.size();i++){
 	    for (long unsigned int j=0;j<lv_prot.size();j++){
-
 	      if(i==j || i>j)continue;
 	      
-
-	     TLorentzVector lv_MMpp;
-	     lv_MMpp=beam-lv_prot[i]-lv_prot[j];
-
-	     float mm=lv_MMpp.M();
-	     float mm2=lv_MMpp.M2()*1e-6;
+	      
+	      TLorentzVector lv_MMpp;
+	      lv_MMpp=beam-lv_prot[i]-lv_prot[j];
+	      
+	      float mm=lv_MMpp.M();
+	      float mm2=lv_MMpp.M2()*1e-6;
 	     
-	     if(trigbit==1){
-	       hMM_pp->Fill(mm);
-	       hMM2_pp->Fill(mm2);
-	     }
+	      if(trigbit==1){
+		hMM_pp->Fill(mm);
+		hMM2_pp->Fill(mm2);
+	      }
+	      
 
-	     
-	     if(mm2>-0.1 && mm2<0.1){
+	      //protons from pi0  mass 
+	      if(mm2>-0.1 && mm2<0.1){
+		lv_prot1.push_back(lv_prot[i]);
+		lv_prot2.push_back(lv_prot[j]);
+	      }
 
-	       lv_prot1.push_back(lv_prot[i]);
-	       lv_prot2.push_back(lv_prot[j]);
-	     }
-
-
-	     if( mm2>0.5 && mm2<0.73){
-
-	       lv_prot3.push_back(lv_prot[i]);
-	       lv_prot4.push_back(lv_prot[j]);
-
-	     }
+	      //protons from omega  mass
+	      if( mm2>0.5 && mm2<0.73){
+		lv_prot3.push_back(lv_prot[i]);
+		lv_prot4.push_back(lv_prot[j]);
+	      }
 
 	     
 	    }
 	  }
 	}//lv_prot.size()>=2
 
-	//***********************************************
-	//**************  ALL gg  *****************
-	//Inclusive:
+	//*******************************************
+	//*****************************************
+	//exclusive: pi0 mass selected on MM2(pp) in Hades
+	
+	if(lv_neutr.size()>=2 && lv_prot1.size()==1 && lv_prot2.size()==1){
+	  for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
+	    for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
+	      if(ii==jj || ii>jj)continue;
+	      
+	      float oAngle = lv_neutr[ii].Angle(lv_neutr[jj].Vect())*TMath::RadToDeg();
+	      if (oAngle<oAngleCut) continue;
+	      
+	      TLorentzVector lvg2;
+	      lvg2=lv_neutr[ii]+lv_neutr[jj];
+	      float mass_gg=lvg2.M();
+	      
+	      if(trigbit==1) hinvM_gg_pi0_PT3->Fill(mass_gg);
+	      
+	    }
+	  }
+	}
 
-	if(lv_neutr.size()>=2){
-	    
-	      for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
-		for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
-		  //if(ii==jj || ii>jj)continue;
-
+	//**********************************************************
+	//exclusive: omega selected in MM2(pp) in Hades
+	
+	if(lv_neutr.size()>=2 && lv_prot3.size()==1 && lv_prot4.size()==1 ){
+	  for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
+	    for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
+	      if(ii==jj || ii>jj)continue;
+	      
 		  float oAngle = lv_neutr[ii].Angle(lv_neutr[jj].Vect())*TMath::RadToDeg();
-		  
-
-		  TLorentzVector lvg2;
-		  lvg2=lv_neutr[ii]+lv_neutr[jj];
-		  float mass_gg=lvg2.M();
 		  if (oAngle<oAngleCut) continue;
 		  
-		  //************** pi0 ************************
-		   
-		   if (trigbit==1) hinvM_gg_PT3->Fill(mass_gg);
-
-		   //**************** pip-pim-pi0  ********************
-		   if(lv_pip.size() && lv_pim.size()){
-		     TLorentzVector lv3b;
-
-		     for (long unsigned int i=0;i<lv_pip.size();i++){
-		       for (long unsigned int j=0;j<lv_pim.size();j++){
-			 lv3b=lvg2+lv_pip[i]+lv_pim[j];
-		       
-			 if (trigbit==1) hMpippimpi0_PT3->Fill(lv3b.M());
-		      
-		       }
-		     }
-		   }
-
-		   
-		   //*****************************************
-		}
-	      }
-	    }//lv_neutr.size()>=2
-
-
-	    //*****************************************
-	    //*****************************************
-	    //exclusive: pi0 selected in MM2(pp) in Hades
-
-	    if(lv_neutr.size()>=2 && lv_prot1.size()==1 && lv_prot2.size()==1){
-	      for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
-		for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
-		  if(ii==jj || ii>jj)continue;
-
-		  float oAngle = lv_neutr[ii].Angle(lv_neutr[jj].Vect())*TMath::RadToDeg();
-		  
-		  TLorentzVector lvg2;
-		  lvg2=lv_neutr[ii]+lv_neutr[jj];
-		  TLorentzVector lvMMpp;
-		  lvMMpp=lv_prot1[0]+lv_prot2[0]-beam;
-	  
-		  float mass_gg=lvg2.M();
-				  
-		  if(oAngle>oAngleCut && trigbit==1) hinvM_gg_pi0_PT3->Fill(mass_gg);
-		  	      		  
-		}
-	      }
-	    }
-
-	    //**********************************************************
-	    //exclusive: omega selected in MM2(pp) in Hades
-
-	    if(lv_neutr.size()>=2 && lv_prot3.size()==1 && lv_prot4.size()==1 ){
-	      for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
-		for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
-		  if(ii==jj || ii>jj)continue;
-
-		  float oAngle = lv_neutr[ii].Angle(lv_neutr[jj].Vect())*TMath::RadToDeg();
-		  
 		  TLorentzVector lvg2;
 		  lvg2=lv_neutr[ii]+lv_neutr[jj];
 		  float mass_gg=lvg2.M();
-		  if(oAngle>oAngleCut && trigbit==1) hinvM_gg_omega_pi0_PT3->Fill(mass_gg);
+		  if(trigbit==1) hinvM_gg_omega_pi0_PT3->Fill(mass_gg);
 		  
-
 		  for (long unsigned int i=0;i<lv_pip.size();i++){
 		    for (long unsigned int j=0;j<lv_pim.size();j++){
 		      TLorentzVector lv_om;
 		      lv_om=lvg2+lv_pip[i]+lv_pim[j];
 		      float mm_om=lv_om.M();
-		      if(oAngle>oAngleCut && trigbit==1) hinvM_gg_omega_PT3->Fill(mm_om);
-
-		      
-			}
+		      if(trigbit==1) hinvM_gg_omega_PT3->Fill(mm_om);
+		    }
 		  }
 		  //*************************
 		  	      		  
-		}
-	      }
 	    }
-	    //*******************************
-	    //*******************************
-	    //*************** MIXING  ******************	    
-
-	    int nNeutralCand=lv_gMix.size();
-
-	    eventmixer.nextEvent(nNeutralCand + 10*trigbit);
-	    eventmixer.addVector(lv_gMix, 1);
-	    vector < pair < TLorentzVector, TLorentzVector > >& pairsVec = eventmixer.getMixedVector();
-	    for (long unsigned int j = 0; j < pairsVec.size(); j++) {
-	      pair < TLorentzVector, TLorentzVector >& pair = pairsVec[j];
-	      TLorentzVector particleMix1 = pair.first;
-	      TLorentzVector particleMix2 = pair.second;
-	    
-	      float oAngle = particleMix1.Angle(particleMix2.Vect())*TMath::RadToDeg();
-
-	      TLorentzVector lvMix;
-	      lvMix=particleMix1+particleMix2;
-
-	      if(oAngle< oAngleCut) continue;
-	      
-	      float mass_ggMix=lvMix.M();
-
-	      if(trigbit==1)hinvM_ggMix->Fill(mass_ggMix); //pi0
-	      
-	      //**********************************
-
-	      if(mass_ggMix>100. && mass_ggMix<200.){
-
-		TLorentzVector lv4b;
-		if(lv_pip.size() && lv_pim.size()){
-		  for (long unsigned int i=0;i<lv_pip.size();i++){
-		    for (long unsigned int j=0;j<lv_pim.size();j++){
-		      lv4b=lvMix+lv_pip[i]+lv_pim[j];
-		      if(trigbit==1)hMpippimpi0_Mix->Fill(lv4b.M());
-		    }
-		  }
-		}
-		//***********************************		
-	      }//if(mass_ggMix>100. && mass_ggMix<200.)
-      
-	    }//end event mixing
-
-	    //***********************************************
-	    //***********************************************
-
+	  }
+	}
+	
+	//***********************************************
+	
     } // End of event loop
 
     
