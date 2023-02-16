@@ -237,18 +237,18 @@ Int_t loopDST_photons() {
 		//Float_t phi = cl->getPhi();
 
 		Int_t cel = cl->getCell();		
-		if(cel<10)continue;
+		if(cel<33)continue;
+
+		HGeomVector trackVec(cl->getXLab(), cl->getYLab(), cl->getZLab() - VertexZ);
 		
 		Double_t energy  = cl->getEnergy();
 		Double_t tof  =cl->getTime();
-
-		//Beta:
-		HGeomVector trackVec(cl->getXLab(), cl->getYLab(), cl->getZLab() - VertexZ);
 		Double_t trackLength = trackVec.length();
 
-		trackVec  *= (energy/trackLength);
-		Double_t beta = (trackLength/1000.) / (tof * 1.e-9 * TMath::C());
-		  
+		//Beta:
+		Double_t beta = neutr_cand->getBeta();
+
+		
 		hcl_size->Fill(cl_size);
 		hbeta->Fill(beta);
 		
@@ -343,7 +343,7 @@ Int_t loopDST_photons() {
 	  for (long unsigned int ii=0;ii<lv_neutr.size();ii++){
 	    for (long unsigned int jj=0;jj<lv_neutr.size();jj++){
 	      if(ii==jj || ii>jj)continue;
-	      
+
 	      float oAngle = lv_neutr[ii].Angle(lv_neutr[jj].Vect())*TMath::RadToDeg();
 	      if (oAngle<oAngleCut) continue;
 	      
